@@ -1,4 +1,5 @@
 import { Message, MessageBus, MessageMiddleware } from '../../shared/models/types';
+import { logMessage } from '../components/MessageInspector';
 
 declare global {
   interface Window {
@@ -42,85 +43,95 @@ export class ClientMessageBus implements MessageBus {
   }
 
   async send<TResult>(message: Message): Promise<TResult> {
-    // Apply middlewares
-    let processedMessage = message;
+    // Create a chain of middleware calls that will eventually send the message
+    let index = 0;
+    const startTime = Date.now();
     
-    if (this.middlewares.length > 0) {
-      // Create a chain of middleware calls
-      let index = 0;
-      const next = async (currentMessage: Message): Promise<Message> => {
-        if (index < this.middlewares.length) {
-          const middleware = this.middlewares[index++];
-          return await middleware.process(currentMessage, 
-            () => next(currentMessage)) as unknown as Message;
-        } else {
-          return currentMessage;
-        }
-      };
+    const executeRequest = async (): Promise<TResult> => {
+      // Log the transport method
+      console.log(`[ClientMessageBus] Sending message via ${this.useHttpApi ? 'HTTP API' : this.isConnected ? 'IPC' : 'unknown transport'}`);
       
-      processedMessage = await next(message) as Message;
-    }
-    
-    // Log the transport method
-    console.log(`[ClientMessageBus] Sending message via ${this.useHttpApi ? 'HTTP API' : this.isConnected ? 'IPC' : 'unknown transport'}`);
-    
-    // Send the message
-    let response: TResult;
-    
-    if (this.useHttpApi) {
-      // Use HTTP API in development mode
-      try {
-        console.log(`[ClientMessageBus] Sending to ${this.apiUrl}:`, JSON.stringify(processedMessage, null, 2));
-        
-        const result = await fetch(this.apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(processedMessage),
-        });
-        
-        if (!result.ok) {
-          console.error(`[ClientMessageBus] HTTP error: ${result.status} ${result.statusText}`);
-          
-          // Try to parse error message, but handle case where response isn't valid JSON
-          try {
-            const errorData = await result.json();
-            throw new Error(errorData.error || `Server error: ${result.status}`);
-          } catch (jsonError) {
-            throw new Error(`Server error: ${result.status} - ${result.statusText}`);
-          }
-        }
-        
-        // Handle case where response isn't valid JSON
+      // Send the message
+      let response: TResult;
+      
+      if (this.useHttpApi) {
+        // Use HTTP API in development mode
         try {
-          response = await result.json();
-          console.log(`[ClientMessageBus] Response:`, response);
-        } catch (jsonError) {
-          console.error(`[ClientMessageBus] Error parsing JSON response`, jsonError);
-          throw new Error(`Invalid JSON response from server`);
+          console.log(`[ClientMessageBus] Sending to ${this.apiUrl}:`, JSON.stringify(message, null, 2));
+          
+          const result = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(message),
+          });
+          
+          if (!result.ok) {
+            console.error(`[ClientMessageBus] HTTP error: ${result.status} ${result.statusText}`);
+            
+            // Try to parse error message, but handle case where response isn't valid JSON
+            try {
+              const errorData = await result.json();
+              throw new Error(errorData.error || `Server error: ${result.status}`);
+            } catch (jsonError) {
+              throw new Error(`Server error: ${result.status} - ${result.statusText}`);
+            }
+          }
+          
+          // Handle case where response isn't valid JSON
+          try {
+            response = await result.json();
+            console.log(`[ClientMessageBus] Response:`, response);
+            
+            // Direct logging to message inspector
+            const duration = Date.now() - startTime;
+            logMessage(message, response, duration);
+            
+            return response;
+          } catch (jsonError) {
+            console.error(`[ClientMessageBus] Error parsing JSON response`, jsonError);
+            throw new Error(`Invalid JSON response from server`);
+          }
+        } catch (error) {
+          console.error('Error sending message via HTTP:', error);
+          throw error;
         }
-      } catch (error) {
-        console.error('Error sending message via HTTP:', error);
-        throw error;
+      } else if (this.isConnected) {
+        // Use IPC in Electron
+        try {
+          console.log(`[ClientMessageBus] Sending via IPC:`, JSON.stringify(message, null, 2));
+          response = await window.electron.messageBus.send(
+            'message', 
+            message
+          );
+          console.log(`[ClientMessageBus] IPC Response:`, response);
+          
+          // Direct logging to message inspector
+          const duration = Date.now() - startTime;
+          logMessage(message, response, duration);
+          
+          return response;
+        } catch (error) {
+          console.error('Error sending message via IPC:', error);
+          throw error;
+        }
+      } else {
+        throw new Error('No message transport available');
       }
-    } else if (this.isConnected) {
-      // Use IPC in Electron
-      try {
-        console.log(`[ClientMessageBus] Sending via IPC:`, JSON.stringify(processedMessage, null, 2));
-        response = await window.electron.messageBus.send(
-          'message', 
-          processedMessage
-        );
-        console.log(`[ClientMessageBus] IPC Response:`, response);
-      } catch (error) {
-        console.error('Error sending message via IPC:', error);
-        throw error;
+      
+      return response;
+    };
+
+    const next = async (): Promise<TResult> => {
+      if (index < this.middlewares.length) {
+        const middleware = this.middlewares[index++];
+        return middleware.process(message, next);
+      } else {
+        return executeRequest();
       }
-    } else {
-      throw new Error('No message transport available');
-    }
+    };
     
-    return response;
+    return next();
   }
 } 

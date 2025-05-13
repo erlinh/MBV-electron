@@ -6,8 +6,13 @@ import { LoggingMiddleware } from './messageBus/LoggingMiddleware';
 import MessageInspector from './components/MessageInspector';
 
 // Configure the message bus with middleware
-const messageBus = new ClientMessageBus();
+export const messageBus = new ClientMessageBus();
 messageBus.use(new LoggingMiddleware());
+
+// Make the message bus available globally for debugging
+if (typeof window !== 'undefined') {
+  (window as any).__messageBus = messageBus;
+}
 
 // Determine if we are in development mode
 const isDev = typeof window !== 'undefined' && window.electron?.isDev;

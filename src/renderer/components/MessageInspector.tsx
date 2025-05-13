@@ -106,11 +106,17 @@ export function logMessage(message: Message, response: any, duration: number): v
     duration,
   };
   
+  // Update the global queue
   messageQueue = [log, ...messageQueue].slice(0, 100); // Keep only the last 100 messages
   
   // Dispatch an event to notify the inspector
-  const event = new CustomEvent('mbv:message', { detail: log });
-  window.dispatchEvent(event);
+  try {
+    const event = new CustomEvent('mbv:message', { detail: log });
+    window.dispatchEvent(event);
+    console.log('[MessageInspector] Logged message:', log.message.type);
+  } catch (error) {
+    console.error('[MessageInspector] Error dispatching event:', error);
+  }
 }
 
 interface MessageInspectorProps {
@@ -129,10 +135,12 @@ export const MessageInspector: React.FC<MessageInspectorProps> = () => {
     // Subscribe to new messages
     const handleMessage = (event: Event) => {
       const customEvent = event as CustomEvent<MessageLog>;
+      console.log('[MessageInspector] Received message event:', customEvent.detail);
       setMessages(prev => [customEvent.detail, ...prev].slice(0, 100));
     };
     
     window.addEventListener('mbv:message', handleMessage);
+    console.log('[MessageInspector] Event listener added for mbv:message');
     
     return () => {
       window.removeEventListener('mbv:message', handleMessage);
@@ -167,7 +175,7 @@ export const MessageInspector: React.FC<MessageInspectorProps> = () => {
       ...(isMinimized ? styles.minimized : {}),
     }}>
       <div style={styles.header}>
-        <h3 style={styles.title}>MBV Message Inspector</h3>
+        <h3 style={styles.title}>MBV Message Inspector ({messages.length})</h3>
         <div>
           <button 
             style={styles.button} 
