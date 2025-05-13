@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBV Notes</title>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --primary-color: #4a6da7;
+      --secondary-color: #8ca0c7;
+      --accent-color: #d83a6f;
+      --sidebar-bg: #f5f5f5;
+      --card-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --hover-color: #f0f0f0;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --primary-color: #4a84e8;
+      --secondary-color: #2b4e8f;
+      --accent-color: #ff3b86;
+      --sidebar-bg: #252525;
+      --card-bg: #2a2a2a;
+      --border-color: #444444;
+      --hover-color: #333333;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    button.secondary {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+
+    button.secondary:hover {
+      background-color: var(--hover-color);
+    }
+
+    input, textarea {
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    /* Error banner */
+    .error-banner {
+      background-color: var(--accent-color);
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Make sure we initialize the root div at full height */
+    #root {
+      height: 100%;
+    }
+  </style>
+  <script type="module" crossorigin src="./assets/index-BmnL4ttH.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html> 
