@@ -41,9 +41,9 @@ async function startDevServer() {
     await waitOn({ resources: ['http-get://localhost:3000'], timeout: 10000 });
     console.log('Vite server is ready!');
 
-    // Start Electron
+    // Start Electron with the built TypeScript file
     console.log('Starting Electron...');
-    const electronProcess = spawn(electron, ['.'], {
+    const electronProcess = spawn(electron, ['build/electron.js'], {
       stdio: 'inherit',
       env: env
     });

@@ -2,11 +2,11 @@
   "name": "mbv-electron",
   "version": "1.0.0",
   "description": "Note-taking app implementing MBV architecture in Electron with TypeScript",
-  "main": "electron.js",
+  "main": "build/electron.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "node tools/dev-server.js",
-    "build": "vite build && electron-builder --config electron-builder.js",
+    "start": "npm run build:main && electron .",
+    "dev": "npm run build:main && node tools/dev-server.js",
+    "build": "vite build && npm run build:main && electron-builder --config electron-builder.js",
     "build:main": "tsc -p tsconfig.electron.json",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
@@ -17,8 +17,7 @@
     "productName": "MBV Notes",
     "files": [
       "dist/**/*",
-      "electron.js",
-      "src/main/**/*",
+      "build/**/*",
       "src/shared/**/*"
     ],
     "directories": {
@@ -77,6 +76,7 @@
     "zustand": "^5.0.4"
   },
   "devDependencies": {
+    "@types/electron": "^1.6.12",
     "@types/express": "^5.0.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.17",

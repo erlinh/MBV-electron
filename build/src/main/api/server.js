@@ -18,8 +18,8 @@ app.use((req, res, next) => {
     console.log(`[API] ${req.method} ${req.url}`);
     next();
 });
-// Endpoints
-app.post('/api/message', async (req, res) => {
+// Handle API messages
+const handleMessage = async (req, res) => {
     try {
         const { type, payload } = req.body;
         if (!type) {
@@ -27,15 +27,17 @@ app.post('/api/message', async (req, res) => {
         }
         const message = { type, payload };
         const result = await setup_1.messageBus.send(message);
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         console.error('[API] Error handling message:', error);
-        res.status(500).json({
+        return res.status(500).json({
             error: error instanceof Error ? error.message : 'Unknown error',
         });
     }
-});
+};
+// API Endpoints
+app.post('/api/message', handleMessage);
 // OpenAPI documentation
 const swaggerDocument = {
     openapi: '3.0.0',

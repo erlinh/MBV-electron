@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { messageBus } from '../ipc/setup';
@@ -17,8 +17,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Endpoints
-app.post('/api/message', async (req: Request, res: Response) => {
+// Handle API messages
+const handleMessage = async (req, res) => {
   try {
     const { type, payload } = req.body;
     
@@ -29,14 +29,17 @@ app.post('/api/message', async (req: Request, res: Response) => {
     const message = { type, payload };
     const result = await messageBus.send(message);
     
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error('[API] Error handling message:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
-});
+};
+
+// API Endpoints
+app.post('/api/message', handleMessage);
 
 // OpenAPI documentation
 const swaggerDocument = {

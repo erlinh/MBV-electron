@@ -5,18 +5,20 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": false,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
     "outDir": "build",
     "baseUrl": ".",
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": true,
     "allowSyntheticDefaultImports": true,
-    "noImplicitAny": false,
     "paths": {
       "@/*": ["./src/*"]
     }
   },
   "include": [
+    "electron.ts",
     "src/main/**/*.ts",
     "src/shared/**/*.ts"
   ],
