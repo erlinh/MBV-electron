@@ -84,10 +84,17 @@ export const usePreferenceStore = create<PreferenceState>((set, get) => ({
         return;
       }
       
-      // Refresh preferences
-      await get().fetchPreferences();
-      
-      set({ isLoading: false });
+      // Update preferences directly with the result
+      if (result.preferences) {
+        set({ 
+          preferences: result.preferences,
+          isLoading: false 
+        });
+      } else {
+        // Fallback to refreshing preferences from server
+        await get().fetchPreferences();
+        set({ isLoading: false });
+      }
     } catch (error) {
       console.error('Error updating preferences:', error);
       set({ 

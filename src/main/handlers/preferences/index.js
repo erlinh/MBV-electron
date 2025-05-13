@@ -9,12 +9,11 @@ const noteRepository = new NoteRepository();
 function updatePreferencesHandler() {
   return async (command) => {
     try {
-      const { preferences } = command.payload;
-      
-      await preferencesRepository.updatePreferences(preferences);
+      const updatedPreferences = await preferencesRepository.updatePreferences(command.payload);
       
       return {
         success: true,
+        preferences: updatedPreferences
       };
     } catch (error) {
       console.error('Error updating preferences:', error);
