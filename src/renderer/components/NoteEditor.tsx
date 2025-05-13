@@ -34,7 +34,11 @@ const NoteEditor: React.FC = () => {
       
       // Set a new timer
       const timer = setTimeout(() => {
-        handleSave();
+        if (currentNote) {
+          // Pass the current tags to preserve them in auto-save
+          updateNote(currentNote.id, title, content, currentNote.tags);
+          setIsEditing(false);
+        }
       }, 2000); // Auto-save after 2 seconds of inactivity
       
       setAutoSaveTimer(timer);
@@ -50,7 +54,7 @@ const NoteEditor: React.FC = () => {
   
   const handleSave = () => {
     if (currentNote) {
-      updateNote(currentNote.id, title, content);
+      updateNote(currentNote.id, title, content, currentNote.tags);
       setIsEditing(false);
     }
   };
